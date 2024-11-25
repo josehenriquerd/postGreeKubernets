@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>CRUD de Produtos</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <style>
+        body {
+  font-family: Arial, sans-serif;
+}
+
+.card-header {
+  background-color: #007bff;
+  color: #fff;
+  font-weight: bold;
+}
+
+.list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.produto-actions button {
+  margin-left: 5px;
+}
+
+    </style>
+  <div class="container my-4">
+    <h1 class="text-center mb-4">Gestão de Produtos</h1>
+
+    <!-- Formulário de Adicionar Produto -->
+    <div class="card mb-4">
+      <div class="card-header">Adicionar Produto</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="nome">Nome do Produto</label>
+            <input type="text" class="form-control" id="nome" placeholder="Nome do Produto">
+          </div>
+          <div class="form-group col-md-4">
+            <label for="preco">Preço</label>
+            <input type="number" class="form-control" id="preco" placeholder="Preço">
+          </div>
+          <div class="form-group col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" onclick="adicionarProduto()">Adicionar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Produtos -->
+    <h2 class="mb-3">Lista de Produtos</h2>
+    <div id="produtos" class="list-group"></div>
+  </div>
+  <script>
+async function carregarProdutos() {
+  const response = await fetch('/produtos');
+  const produtos = await response.json();
+  const produtosDiv = document.getElementById('produtos');
+  produtosDiv.innerHTML = '';
+
+  produtos.forEach(produto => {
+    const produtoItem = document.createElement('div');
+    produtoItem.className = 'list-group-item';
+
+    produtoItem.innerHTML = `
+      <span><strong>${produto.nome}</strong> - R$ ${produto.preco.toFixed(2)}</span>
+      <div class="produto-actions">
+        <button class="btn btn-info btn-sm" onclick="atualizarProduto(${produto.id})">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deletarProduto(${produto.id})">Excluir</button>
+      </div>
+    `;
+    produtosDiv.appendChild(produtoItem);
+  });
+}
+
+async function adicionarProduto() {
+  const nome = document.getElementById('nome').value;
+  const preco = document.getElementById('preco').value;
+
+  await fetch('/produtos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome, preco })
+  });
+
+  document.getElementById('nome').value = '';
+  document.getElementById('preco').value = '';
+  carregarProdutos();
+}
+
+async function atualizarProduto(id) {
+  const nome = prompt("Novo nome do produto:");
+  const preco = prompt("Novo preço:");
+
+  if (nome && preco) {
+    await fetch(`/produtos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, preco })
+    });
+    carregarProdutos();
+  }
+}
+
+async function deletarProduto(id) {
+  await fetch(`/produtos/${id}`, { method: 'DELETE' });
+  carregarProdutos();
+}
+
+carregarProdutos();
+
+  </script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+  
+</body>
+</html>

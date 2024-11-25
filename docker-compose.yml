@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: produtos_db
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: your_secure_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "myuser", "-d", "produtos_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      POSTGRES_DB: produtos_db
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: your_secure_password
+    depends_on:
+      db:
+        condition: service_healthy
+
+  portainer:
+    image: portainer/portainer-ce
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: always
+
+volumes:
+  db_data:
+    driver: local
+  portainer_data:
+    driver: local
+
+    ##a senha do portainer é admin1234567, usuario, admin
